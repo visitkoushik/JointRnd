@@ -1,38 +1,109 @@
-.App {
-  text-align: center;
+@import "~@clientio/rappid/rappid.css";
+
+#root {
+    height: 100vh;
+    width: 100vw;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.canvas {
+    width: 100%;
+    height: 100%;
+}
+ 
+
+ html, body, #tree-app,
+ .joint-paper-scroller.joint-theme-material {
+     width: 100%;
+     height: 100%;
+     padding: 0;
+     margin: 0;
+ }
+ 
+ .joint-halo.joint-theme-material  .box {
+     width: 160px;
+     text-align: left;
+     font-size: 0.9em;
+     color: #3c4260;
+     background-color: rgba(255,255,255,0.7);
+ }
+.menubar{
+    background: black;
+    width: 100%;
+    height: 80px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.addButton{
+    width: 45px;
+    height: 45px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left:0;
+    bottom: 0;
+    margin: auto;
+    font-size: 2rem;
+    color: rgb(0, 195, 42);
+    z-index: 1000;
+    display: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.saveButton{
+    width: 45px;
+    height: 45px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.inspector{
+    background: white;
+    height: 90%;
+    width: 20%;
+    position: absolute;
+    top: 7%;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto 0;
+}
+.template{
+    background: white;
+    height: 300px;
+    width:40%;
+    position: absolute;
+    top:0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin:auto;
+    padding: 1rem;
+    
+}
+.overlay{
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0,0.3);
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+    z-index: 10000;
 }
 
-.App-link {
-  color: #61dafb;
+.selection{
+    width: 100%;
+    height: 50px;
+    font-size: 20px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.content{
+    height: 21vh;
+    border: 1px solid black;
+    width: 21vh;
+    margin: auto;
+    margin-top: 2rem;
 }
