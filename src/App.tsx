@@ -143,9 +143,20 @@ function App() {
         setSelectedTemplate(e.target.value)
         templateDictionary[currentSelectionModel] = e.target.value;
       
-        content.current.src =options[(+(e.target.value+""))-1].filename ;
+        fetchPage(options[(+(e.target.value+""))-1].filename)
+        .then((html:any)=>{console.log(html);
+          content.current.innerHTML=html;
+        })
+        .catch((e:any)=>{}) ;
       }
     };
+
+    const fetchPage=(url:string):any=>{
+
+      return fetch(url).then((response:any)=>response.text())
+
+        
+    }
     const ELEMENT: joint.shapes.standard.Rectangle =
       new joint.shapes.standard.Rectangle({
         size: { height: 45, width: 100 },
@@ -180,7 +191,13 @@ function App() {
       },
       connector: { name: "rounded" },
     });
-
+    const verticesTool = new joint.linkTools.Vertices();
+    const segmentsTool = new joint.linkTools.Segments();
+    const boundaryTool = new joint.linkTools.Boundary();
+    const toolsView = new joint.dia.ToolsView({
+      tools: [verticesTool, segmentsTool, boundaryTool]
+  });
+   
     const saveDesign = () => {
       let json = graph.toJSON();
       console.log(json);
@@ -466,7 +483,8 @@ function App() {
           target: { id: newElement.id },
         })
         .addTo(graph);
-
+ var linkView = link.findView(paper);
+    linkView.addTools(toolsView);
       return newElement;
     };
 
@@ -516,7 +534,7 @@ function App() {
               </option>
             ))}
           </select>
-          <iframe className="content" ref={content}></iframe>
+          <div className="content" ref={content}></div>
         </div>
       </div>
       <button className="addButton" id="addHeader" ref={addButton}>
