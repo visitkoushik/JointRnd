@@ -28,22 +28,23 @@ function App() {
   const FONTCOLORS = ["#000000", "#0000ff", "#ff0000", "#00ff00", "#ffffff"];
   const [displayInspector, setDisplayInspector] = useState(false);
   const [displaTemplateSelect, setDisplaTemplateSelect] = useState(false);
-  // const [currentSelectionModel, setCurrentSelectionModel] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const [options, setOption] = useState([
-    { type: "template", name: "Tempale_1" },
-    { type: "template", name: "Tempale_2" },
-    { type: "template", name: "Tempale_3" },
-    { type: "template", name: "Tempale_4" },
-    { type: "template", name: "Tempale_5" },
-    { type: "template", name: "Tempale_6" },
-    { type: "template", name: "Tempale_7" },
+    { type: "template", name: "Tempale_1" ,id:1,filename:"template/template1.html"},
+    { type: "template", name: "Tempale_2" ,id:2,filename:"template/template2.html"},
+    { type: "template", name: "Tempale_3" ,id:3,filename:"template/template3.html"},
+    { type: "template", name: "Tempale_4" ,id:4,filename:"template/template4.html"},
+    { type: "template", name: "Tempale_5" ,id:5,filename:"template/template5.html"},
+    { type: "template", name: "Tempale_6" ,id:6,filename:"template/template6.html"},
+    { type: "template", name: "Tempale_7" ,id:7,filename:"template/template7.html"},
   ]);
 
   useEffect(() => {
     // const graph = new joint.dia.Graph({}, { cellNamespace: shapes });
     // debugger;
     let currentSelectionModel="";
-    const templateDictionary: { [x: string]: string } = {};
+    
+    const templateDictionary: { [x: string]: any } = {};
     const graph = new joint.dia.Graph();
     const tree = new Layout.TreeLayout({ graph: graph });
     const paper = new joint.dia.Paper({
@@ -62,6 +63,8 @@ function App() {
       // },
       interactive: true,
     });
+
+    
 
     const paperScroller = new joint.ui.PaperScroller({
       padding: 0,
@@ -114,6 +117,7 @@ function App() {
     };
 
     saveButton.current.onclick = () => {
+      graph.set("template",templateDictionary)
       saveDesign();
     };
 
@@ -133,16 +137,13 @@ function App() {
       e.stopPropagation();
     };
 
-    selecttemplate.current.onchange = () => {
+    selecttemplate.current.onchange = (e:any) => {
       if (currentSelectionModel) {
-        fetch("template/template1.html" /*, options */)
-          .then((response) => response.text())
-          .then((html) => {
-            content.current.src =`template/template1.html`;
-          })
-          .catch((error) => {
-            console.warn(error);
-          });
+        debugger;
+        setSelectedTemplate(e.target.value)
+        templateDictionary[currentSelectionModel] = e.target.value;
+      
+        content.current.src =options[(+(e.target.value+""))-1].filename ;
       }
     };
     const ELEMENT: joint.shapes.standard.Rectangle =
@@ -255,6 +256,8 @@ function App() {
       halo.on("action:linkaction:pointerdown", () => {
         currentSelectionModel=(model.id + "");
         console.log(model.id);
+        selecttemplate.current.value = templateDictionary[currentSelectionModel]||""
+        content.current.src =options[(+(selecttemplate.current.value+""))-1]?.filename||"" ;
         setDisplaTemplateSelect(true);
         halo.remove();
       });
@@ -438,8 +441,7 @@ function App() {
       console.log(view);
       const element = view.model;
       if (element.isElement()) {
-        let label = prompt("Enter Name:");
-        generateTree(ELEMENT, element, label || "");
+        generateTree(ELEMENT, element,  "");
       }
     };
 
@@ -507,8 +509,9 @@ function App() {
       >
         <div className="template" ref={template}>
           <select className="selection" ref={selecttemplate}>
+            <option value="" disabled>Select Template</option>
             {options.map((o: any, i: number) => (
-              <option key={i} value={i + 1}>
+              <option key={i} value={o.id}>
                 {o.name}
               </option>
             ))}
