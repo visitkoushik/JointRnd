@@ -18,7 +18,10 @@ function App() {
   const content: any = useRef(null);
   const selecttemplate: any = useRef(null);
 
-  let zeroElement:joint.shapes.standard.Circle|undefined=undefined;
+  const DIRECTIONS = ["R", "BR", "B", "BL", "L", "TL", "T", "TR"];
+  const POSITIONS = ["e", "se", "s", "sw", "w", "nw", "n", "ne"];
+
+  let zeroElement: joint.shapes.standard.Circle | undefined = undefined;
   const COLORS = [
     "#31d0c6",
     "#7c68fc",
@@ -76,7 +79,7 @@ function App() {
     },
   ]);
 
-  const getLinkToolsView = ():joint.dia.ToolsView => {
+  const getLinkToolsView = (): joint.dia.ToolsView => {
     const verticesTool = new joint.linkTools.Vertices();
     const segmentsTool = new joint.linkTools.Segments();
     const sourceArrowheadTool = new joint.linkTools.SourceArrowhead();
@@ -85,7 +88,7 @@ function App() {
     const targetAnchorTool = new joint.linkTools.TargetAnchor();
     const boundaryTool = new joint.linkTools.Boundary();
     const removeButton = new joint.linkTools.Remove();
-    const toolsView:joint.dia.ToolsView = new joint.dia.ToolsView({
+    const toolsView: joint.dia.ToolsView = new joint.dia.ToolsView({
       tools: [
         verticesTool,
         segmentsTool,
@@ -101,12 +104,11 @@ function App() {
     return toolsView;
   };
 
-
-  const getLink=(color?:string)=>{
+  const getLink = (color?: string) => {
     const LINK: joint.shapes.standard.Link = new joint.shapes.standard.Link({
       attrs: {
         line: {
-          stroke: color||"#6a6c8a",
+          stroke: color || "#6a6c8a",
           strokeWidth: 2,
           pointerEvents: "none",
           targetMarker: {
@@ -119,56 +121,54 @@ function App() {
     });
 
     return LINK;
-  }
-  const getRootElement=()=>{
+  };
+  const getRootElement = () => {
     const ELEMENT: joint.shapes.standard.Circle =
-    new joint.shapes.standard.Circle({
-      size: { height: 4, width: 4 },
-      
-      attrs: {
-        body: {
-          fill: "#00000000",
-          rx: 5,
-          ry: 5,
-          cursor: "pointer",
-          strokeWidth: 1,
-          stroke: "#00000000",
+      new joint.shapes.standard.Circle({
+        size: { height: 4, width: 4 },
+
+        attrs: {
+          body: {
+            fill: "#00000000",
+            rx: 5,
+            ry: 5,
+            cursor: "pointer",
+            strokeWidth: 1,
+            stroke: "#00000000",
+          },
+          label: {
+            text: "",
+            fill: "00000000",
+            "font-size": 0,
+          },
         },
-        label: {
-          text: "",
-          fill: "00000000",
-          "font-size": 0,
-        },
-      },
-    });
+      });
     return ELEMENT;
-  }
-  const getElement=()=>{
+  };
+  const getElement = () => {
     const ELEMENT: joint.shapes.standard.Rectangle =
-    new joint.shapes.standard.Rectangle({
-      size: { height: 45, width: 100 },
-      
-      attrs: {
-        body: {
-          fill: COLORS[1],
-          rx: 5,
-          ry: 5,
-          cursor: "pointer",
-          strokeWidth: 2,
-          stroke: "#6a6c8a",
+      new joint.shapes.standard.Rectangle({
+        size: { height: 45, width: 100 },
+
+        attrs: {
+          body: {
+            fill: COLORS[1],
+            rx: 5,
+            ry: 5,
+            cursor: "pointer",
+            strokeWidth: 2,
+            stroke: "#6a6c8a",
+          },
+          label: {
+            text: "Placeholder",
+            fill: FONTCOLORS[0],
+            "font-size": 14,
+          },
         },
-        label: {
-          text: "Placeholder",
-          fill: FONTCOLORS[0],
-          "font-size": 14,
-        },
-      },
-    });
+      });
     return ELEMENT;
-  }
-  const showInspector = (
-    view: joint.dia.ElementView
-  ) => {
+  };
+  const showInspector = (view: joint.dia.ElementView) => {
     const model = view.model;
 
     joint.ui.Inspector.create(inspector.current, {
@@ -191,21 +191,21 @@ function App() {
               index: 1,
             },
           },
-          fill: {
-            type: "color",
-            options: [
-              { content: FONTCOLORS[0] },
-              { content: FONTCOLORS[1] },
-              { content: FONTCOLORS[2] },
-              { content: FONTCOLORS[3] },
-              { content: FONTCOLORS[4] },
-            ],
-            label: "Font color",
-            group: "color",
-            index: 1,
-          },
-
           label: {
+            fill: {
+              type: "color",
+              options: [
+                { content: FONTCOLORS[0] },
+                { content: FONTCOLORS[1] },
+                { content: FONTCOLORS[2] },
+                { content: FONTCOLORS[3] },
+                { content: FONTCOLORS[4] },
+              ],
+              label: "Font color",
+              group: "color",
+              index: 1,
+            },
+
             text: {
               label: "Label",
               type: "text",
@@ -221,9 +221,7 @@ function App() {
             },
             "font-size": {
               type: "select",
-              options: [
-                5, 10, 12, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30,
-              ],
+              options: [5, 10, 12, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30],
               multiple: false,
               overwrite: true,
               label: "Font size",
@@ -268,14 +266,12 @@ function App() {
     const graph = new joint.dia.Graph();
     const tree = new Layout.TreeLayout({ graph: graph });
 
-
-    const width=window.screen.availWidth-100;
-    const height=window.screen.availHeight-300;
-
+    const width = window.screen.availWidth - 100;
+    const height = window.screen.availHeight - 300;
 
     const paper = new joint.dia.Paper({
-      width:  width,
-      height:  height,
+      width: width,
+      height: height,
       gridSize: 10,
       model: graph,
       perpendicularLinks: false,
@@ -318,34 +314,35 @@ function App() {
     addButton.current.onmousemove = (e: any) => {
       if (graph.toJSON().cells.length > 0) return;
 
-      addButton.current.style.display = "block";
+      // addButton.current.style.display = "block";
 
-      if (timeOut !== null) {
-        clearTimeout(timeOut);
-      }
-      timeOut = setTimeout(() => {
-        addButton.current.style.display = "none";
-      }, 800);
+      // if (timeOut !== null) {
+      //   clearTimeout(timeOut);
+      // }
+      // timeOut = setTimeout(() => {
+      //   addButton.current.style.display = "none";
+      // }, 1000);
     };
     canvas.current.onmousemove = (e: any) => {
       // if (graph.toJSON().cells.length > 0) return;
-      addButton.current.style.display = "block";
-
-      if (timeOut !== null) {
-        clearTimeout(timeOut);
-      }
-      timeOut = setTimeout(() => {
-        addButton.current.style.display = "none";
-      }, 800);
+      // addButton.current.style.display = "block";
+      // if (timeOut !== null) {
+      //   clearTimeout(timeOut);
+      // }
+      // timeOut = setTimeout(() => {
+      //     addButton.current.style.display = "none";
+      // }, 1000);
     };
+
     // paperScroller.render().center();
     addButton.current.onclick = () => {
       // let label = prompt("Enter label");
       // generateTree(ELEMENT, elementZero.element, label || "");
-      if(!zeroElement){
-        zeroElement=createZeroElement( getRootElement());
+      addButton.current.style.display = "none";
+      if (!zeroElement) {
+        zeroElement = createZeroElement(getRootElement());
       }
-      createHeader(zeroElement)
+      createHeader(zeroElement);
     };
 
     saveButton.current.onclick = () => {
@@ -374,7 +371,7 @@ function App() {
         // debugger;
         setSelectedTemplate(e.target.value);
         templateDictionary[currentSelectionModel] = e.target.value;
-        content.current.src=options[+(e.target.value + "") - 1].filename;
+        content.current.src = options[+(e.target.value + "") - 1].filename;
         // fetchPage(options[+(e.target.value + "") - 1].filename)
         //   .then((html: any) => {
         //     console.log(html);
@@ -387,10 +384,7 @@ function App() {
     const fetchPage = (url: string): any => {
       return fetch(url).then((response: any) => response.text());
     };
-   
 
-
- 
     const saveDesign = () => {
       let json = graph.toJSON();
       console.log(json);
@@ -481,7 +475,7 @@ function App() {
       console.log(view.model);
 
       if (isremoveModeTree) {
-        delete templateDictionary[view.model.id]
+        delete templateDictionary[view.model.id];
         view.model.remove();
         return;
       }
@@ -506,7 +500,7 @@ function App() {
 
     const removeNode = (linkArray: any[], cellId: string) => {
       let removableElements: any[] = [cellId];
-      delete templateDictionary[cellId]
+      delete templateDictionary[cellId];
       for (let i = 0; i < linkArray.length; i++) {
         if (linkArray[i].source.id === cellId) {
           removableElements = [
@@ -518,26 +512,21 @@ function App() {
       return removableElements;
     };
 
-   
-
     const createZeroElement = (element: any) => {
- 
-          let posX = width/2-80;
-          let posY = height/4-50;
+      let posX = width / 2 - 80;
+      let posY = height / 4 - 50;
 
-          element?.position(posX, posY).addTo(graph).findView(paper);
-          // element?.position(0, 0).addTo(graph).findView(paper);
-     
+      element?.position(posX, posY).addTo(graph).findView(paper);
+      // element?.position(0, 0).addTo(graph).findView(paper);
+
       // layout();
       return element;
     };
 
-
-
-    const createHeader = (element: any) => { 
+    const createHeader = (element: any) => {
       if (element.isElement()) {
         const el = getElement();
-     
+
         generateHeaderTree(el, element, "");
       }
     };
@@ -550,13 +539,31 @@ function App() {
         generateTree(el, element, "");
       }
     };
- 
+
     var clickTimerId: any;
+
+    const onBlankClick = (e: any) => {
+      debugger;
+      paperScroller.startPanning(e);
+      if (addButton.current.style.display !== "block") {
+        addButton.current.style.top = e.originalEvent.y + "px";
+        addButton.current.style.left = e.originalEvent.x + "px";
+        addButton.current.style.display = "block";
+      } else {
+        addButton.current.style.display = "none";
+      }
+      // if (timeOut !== null) {
+      //   clearTimeout(timeOut);
+      // }
+      // timeOut = setTimeout(() => {
+
+      //     addButton.current.style.display = "none";
+      // }, 1000);
+    };
     const onElementClick = (view: any, event: any) => {
-      console.log(event.originalEvent);
-      console.log(view);
-      if(view.model === zeroElement){ 
-        return ;
+      addButton.current.style.display = "none";
+      if (view.model === zeroElement) {
+        return;
       }
       // showHalo(view,{animation:true})
       if (clickTimerId) {
@@ -566,24 +573,19 @@ function App() {
         onElementDblClick(view);
       } else {
         // single click
-        clickTimerId = window.setTimeout(click, 200);
-      }
-
-      function click() {
-        clickTimerId = null;
-        showHalo(view, { animation: true });
+        clickTimerId = window.setTimeout(() => {
+          clickTimerId = null;
+          showHalo(view, { animation: true });
+        }, 200);
       }
     };
 
-    const onElementDblClick = (
-      view: any 
-    ) => {
+    const onElementDblClick = (view: any) => {
       setDisplayInspector(true);
       setTimeout(() => {
         showInspector(view);
       }, 10);
     };
-
 
     const addElement = (
       element: any,
@@ -600,7 +602,7 @@ function App() {
         .attr("label/text", label)
         .addTo(graph);
 
-         getLink()
+      getLink()
         .clone()
         .set({
           source: { id: parent.id },
@@ -624,7 +626,7 @@ function App() {
         .attr("label/text", label)
         .addTo(graph);
 
-         getLink("#00000000")
+      getLink("#00000000")
         .clone()
         .set({
           source: { id: parent.id },
@@ -646,7 +648,7 @@ function App() {
     const generateHeaderTree = (element: any, parent: any, label: string) => {
       label = label || "Placeholder";
 
-      const directions = ["BR"];
+      const directions = ["B"];
       const direction = directions[0];
       const newElement = addHeaderElement(element, direction, parent, label);
       layout();
@@ -654,7 +656,7 @@ function App() {
     };
     paper.on({
       "element:pointerdown": onElementClick,
-      "blank:pointerdown": paperScroller.startPanning,
+      "blank:pointerdown": onBlankClick,
     });
     // graph.addCell(elementZero);
     paper.unfreeze();

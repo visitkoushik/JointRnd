@@ -41,10 +41,10 @@
     height: 45px;
     position: absolute;
     top: 0;
-    right: 0;
+    /* right: 0; */
     left:0;
-    bottom: 0;
-    margin: auto;
+    /* bottom: 0; */
+    /* margin: auto; */
     font-size: 2rem;
     color: rgb(0, 195, 42);
     z-index: 1000;
@@ -108,4 +108,5 @@
     width: 21vh;
     margin: auto;
     margin-top: 2rem;
+    display: flex;
 }
