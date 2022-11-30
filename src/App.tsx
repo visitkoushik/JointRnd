@@ -452,6 +452,7 @@ function App() {
         // halo.remove();
         removeAction(view);
         halo.remove();
+        layout();
       });
       halo.on("action:addaction:pointerdown", () => {
         createSubHeader(view);
