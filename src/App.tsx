@@ -336,7 +336,7 @@ function App() {
       }
       timeOut = setTimeout(() => {
         addButton.current.style.display = "none";
-      }, 1000);
+      }, 800);
     };
     // paperScroller.render().center();
     addButton.current.onclick = () => {
