@@ -121,9 +121,9 @@ function App() {
     return LINK;
   }
   const getRootElement=()=>{
-    const ELEMENT: joint.shapes.standard.Rectangle =
-    new joint.shapes.standard.Rectangle({
-      size: { height: 45, width: 45 },
+    const ELEMENT: joint.shapes.standard.Circle =
+    new joint.shapes.standard.Circle({
+      size: { height: 4, width: 4 },
       
       attrs: {
         body: {
@@ -131,7 +131,7 @@ function App() {
           rx: 5,
           ry: 5,
           cursor: "pointer",
-          strokeWidth: 2,
+          strokeWidth: 1,
           stroke: "#00000000",
         },
         label: {
@@ -371,7 +371,7 @@ function App() {
 
     selecttemplate.current.onchange = (e: any) => {
       if (currentSelectionModel) {
-        debugger;
+        // debugger;
         setSelectedTemplate(e.target.value);
         templateDictionary[currentSelectionModel] = e.target.value;
         content.current.src=options[+(e.target.value + "") - 1].filename;
@@ -496,7 +496,7 @@ function App() {
       let allModels = view.model.collection.models.filter(
         (m: any) => removableElements.findIndex((e) => e === m.id) > -1
       );
-      debugger;
+      // debugger;
       for (let i = 0; i < allModels.length; i++) {
         allModels[i].remove();
       }
