@@ -5,6 +5,7 @@ import { layout as Layout } from "@clientio/rappid";
 import "./App.css";
 import "@clientio/rappid/rappid.css";
 import { isLabeledStatement } from "typescript";
+import { constant } from "lodash";
 
 function App() {
   const canvas: any = useRef(null);
@@ -30,20 +31,125 @@ function App() {
   const [displaTemplateSelect, setDisplaTemplateSelect] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [options, setOption] = useState([
-    { type: "template", name: "Tempale_1" ,id:1,filename:"template/template1.html"},
-    { type: "template", name: "Tempale_2" ,id:2,filename:"template/template2.html"},
-    { type: "template", name: "Tempale_3" ,id:3,filename:"template/template3.html"},
-    { type: "template", name: "Tempale_4" ,id:4,filename:"template/template4.html"},
-    { type: "template", name: "Tempale_5" ,id:5,filename:"template/template5.html"},
-    { type: "template", name: "Tempale_6" ,id:6,filename:"template/template6.html"},
-    { type: "template", name: "Tempale_7" ,id:7,filename:"template/template7.html"},
+    {
+      type: "template",
+      name: "Tempale_1",
+      id: 1,
+      filename: "template/template1.html",
+    },
+    {
+      type: "template",
+      name: "Tempale_2",
+      id: 2,
+      filename: "template/template2.html",
+    },
+    {
+      type: "template",
+      name: "Tempale_3",
+      id: 3,
+      filename: "template/template3.html",
+    },
+    {
+      type: "template",
+      name: "Tempale_4",
+      id: 4,
+      filename: "template/template4.html",
+    },
+    {
+      type: "template",
+      name: "Tempale_5",
+      id: 5,
+      filename: "template/template5.html",
+    },
+    {
+      type: "template",
+      name: "Tempale_6",
+      id: 6,
+      filename: "template/template6.html",
+    },
+    {
+      type: "template",
+      name: "Tempale_7",
+      id: 7,
+      filename: "template/template7.html",
+    },
   ]);
+
+  const getLinkToolsView = ():joint.dia.ToolsView => {
+    const verticesTool = new joint.linkTools.Vertices();
+    const segmentsTool = new joint.linkTools.Segments();
+    const sourceArrowheadTool = new joint.linkTools.SourceArrowhead();
+    const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
+    const sourceAnchorTool = new joint.linkTools.SourceAnchor();
+    const targetAnchorTool = new joint.linkTools.TargetAnchor();
+    const boundaryTool = new joint.linkTools.Boundary();
+    const removeButton = new joint.linkTools.Remove();
+
+    const toolsView:joint.dia.ToolsView = new joint.dia.ToolsView({
+      tools: [
+        verticesTool,
+        segmentsTool,
+        sourceArrowheadTool,
+        targetArrowheadTool,
+        sourceAnchorTool,
+        targetAnchorTool,
+        boundaryTool,
+        removeButton,
+      ],
+    });
+
+    return toolsView;
+  };
+
+
+  const getLink=()=>{
+    const LINK: joint.shapes.standard.Link = new joint.shapes.standard.Link({
+      attrs: {
+        line: {
+          stroke: "#6a6c8a",
+          strokeWidth: 2,
+          pointerEvents: "none",
+          targetMarker: {
+            type: "path",
+            d: "M 10 -5 0 0 10 5 z",
+          },
+        },
+      },
+      connector: { name: "rounded" },
+    });
+
+    return LINK;
+  }
+
+  const getElement=()=>{
+    const ELEMENT: joint.shapes.standard.Rectangle =
+    new joint.shapes.standard.Rectangle({
+      size: { height: 45, width: 100 },
+      attrs: {
+        body: {
+          fill: COLORS[1],
+          rx: 5,
+          ry: 5,
+          cursor: "pointer",
+          strokeWidth: 2,
+          stroke: "#6a6c8a",
+        },
+        label: {
+          text: "Placeholder",
+          fill: FONTCOLORS[0],
+          "font-size": 14,
+        },
+      },
+    });
+    return ELEMENT;
+  }
+
 
   useEffect(() => {
     // const graph = new joint.dia.Graph({}, { cellNamespace: shapes });
     // debugger;
-    let currentSelectionModel="";
-    
+    let currentSelectionModel = "";
+    let isremoveModeTree = true;
     const templateDictionary: { [x: string]: any } = {};
     const graph = new joint.dia.Graph();
     const tree = new Layout.TreeLayout({ graph: graph });
@@ -63,8 +169,6 @@ function App() {
       // },
       interactive: true,
     });
-
-    
 
     const paperScroller = new joint.ui.PaperScroller({
       padding: 0,
@@ -113,11 +217,11 @@ function App() {
     addButton.current.onclick = () => {
       // let label = prompt("Enter label");
       // generateTree(ELEMENT, elementZero.element, label || "");
-      createZeroElement(ELEMENT);
+      createZeroElement(getElement());
     };
 
     saveButton.current.onclick = () => {
-      graph.set("template",templateDictionary)
+      graph.set("template", templateDictionary);
       saveDesign();
     };
 
@@ -137,67 +241,28 @@ function App() {
       e.stopPropagation();
     };
 
-    selecttemplate.current.onchange = (e:any) => {
+    selecttemplate.current.onchange = (e: any) => {
       if (currentSelectionModel) {
         debugger;
-        setSelectedTemplate(e.target.value)
+        setSelectedTemplate(e.target.value);
         templateDictionary[currentSelectionModel] = e.target.value;
-      
-        fetchPage(options[(+(e.target.value+""))-1].filename)
-        .then((html:any)=>{console.log(html);
-          content.current.innerHTML=html;
-        })
-        .catch((e:any)=>{}) ;
+        content.current.src=options[+(e.target.value + "") - 1].filename;
+        // fetchPage(options[+(e.target.value + "") - 1].filename)
+        //   .then((html: any) => {
+        //     console.log(html);
+        //     content.current.innerHTML = html;
+        //   })
+        //   .catch((e: any) => {});
       }
     };
 
-    const fetchPage=(url:string):any=>{
-
-      return fetch(url).then((response:any)=>response.text())
-
-        
-    }
-    const ELEMENT: joint.shapes.standard.Rectangle =
-      new joint.shapes.standard.Rectangle({
-        size: { height: 45, width: 100 },
-        attrs: {
-          body: {
-            fill: COLORS[1],
-            rx: 5,
-            ry: 5,
-            cursor: "pointer",
-            strokeWidth: 2,
-            stroke: "#6a6c8a",
-          },
-          label: {
-            text: "Placeholder",
-            fill: FONTCOLORS[0],
-            "font-size": 14,
-          },
-        },
-      });
-
-    const link: joint.shapes.standard.Link = new joint.shapes.standard.Link({
-      attrs: {
-        line: {
-          stroke: "#6a6c8a",
-          strokeWidth: 2,
-          pointerEvents: "none",
-          targetMarker: {
-            type: "path",
-            d: "M 10 -5 0 0 10 5 z",
-          },
-        },
-      },
-      connector: { name: "rounded" },
-    });
-    const verticesTool = new joint.linkTools.Vertices();
-    const segmentsTool = new joint.linkTools.Segments();
-    const boundaryTool = new joint.linkTools.Boundary();
-    const toolsView = new joint.dia.ToolsView({
-      tools: [verticesTool, segmentsTool, boundaryTool]
-  });
+    const fetchPage = (url: string): any => {
+      return fetch(url).then((response: any) => response.text());
+    };
    
+
+
+ 
     const saveDesign = () => {
       let json = graph.toJSON();
       console.log(json);
@@ -247,7 +312,7 @@ function App() {
       halo.addHandle({
         name: "linkaction",
         position: joint.ui.Halo.HandlePosition.S,
-        icon: "img/link.png", 
+        icon: "img/link.png",
       });
       halo.addHandle({
         name: "addaction",
@@ -271,19 +336,27 @@ function App() {
         halo.remove();
       });
       halo.on("action:linkaction:pointerdown", () => {
-        currentSelectionModel=(model.id + "");
+        currentSelectionModel = model.id + "";
         console.log(model.id);
-        selecttemplate.current.value = templateDictionary[currentSelectionModel]||""
-        content.current.src =options[(+(selecttemplate.current.value+""))-1]?.filename||"" ;
+        selecttemplate.current.value =
+          templateDictionary[currentSelectionModel] || "";
+        content.current.src =
+          options[+(selecttemplate.current.value + "") - 1]?.filename || "";
         setDisplaTemplateSelect(true);
         halo.remove();
       });
 
-      halo.render();  
+      halo.render();
     };
 
     const removeAction = (view: any) => {
       console.log(view.model);
+
+      if (isremoveModeTree) {
+        delete templateDictionary[view.model.id]
+        view.model.remove();
+        return;
+      }
       let obje = graph.toJSON();
       let cells = obje.cells;
       console.log(JSON.stringify(cells));
@@ -305,7 +378,7 @@ function App() {
 
     const removeNode = (linkArray: any[], cellId: string) => {
       let removableElements: any[] = [cellId];
-
+      delete templateDictionary[cellId]
       for (let i = 0; i < linkArray.length; i++) {
         if (linkArray[i].source.id === cellId) {
           removableElements = [
@@ -418,8 +491,16 @@ function App() {
       return element;
     };
 
-    // const elementZero = { element: createZeroElement(ELEMENT_ZERO) };
-    // generateTree( ELEMENT,elementZero.element,"First Child");
+
+    const createSubHeader = (view: any) => {
+      console.log(view);
+      const element = view.model;
+      if (element.isElement()) {
+        const el = getElement();
+        generateTree(el, element, "");
+      }
+    };
+ 
     var clickTimerId: any;
     const onElementClick = (view: any, event: any) => {
       console.log(event.originalEvent);
@@ -454,13 +535,6 @@ function App() {
       }, 10);
     };
 
-    const createSubHeader = (view: any) => {
-      console.log(view);
-      const element = view.model;
-      if (element.isElement()) {
-        generateTree(ELEMENT, element,  "");
-      }
-    };
 
     const addElement = (
       element: any,
@@ -476,16 +550,14 @@ function App() {
         .attr("body/fill", color)
         .attr("label/text", label)
         .addTo(graph);
-      link
+
+         getLink()
         .clone()
         .set({
           source: { id: parent.id },
           target: { id: newElement.id },
         })
         .addTo(graph);
- var linkView = link.findView(paper);
-    linkView.addTools(toolsView);
-      return newElement;
     };
 
     const generateTree = (element: any, parent: any, label: string) => {
@@ -527,14 +599,16 @@ function App() {
       >
         <div className="template" ref={template}>
           <select className="selection" ref={selecttemplate}>
-            <option value="" disabled>Select Template</option>
+            <option value="" disabled>
+              Select Template
+            </option>
             {options.map((o: any, i: number) => (
               <option key={i} value={o.id}>
                 {o.name}
               </option>
             ))}
           </select>
-          <div className="content" ref={content}></div>
+          <iframe className="content" ref={content}></iframe>
         </div>
       </div>
       <button className="addButton" id="addHeader" ref={addButton}>
