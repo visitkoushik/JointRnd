@@ -18,6 +18,7 @@ function App() {
   const content: any = useRef(null);
   const selecttemplate: any = useRef(null);
 
+  let zeroElement:joint.shapes.standard.Circle|undefined=undefined;
   const COLORS = [
     "#31d0c6",
     "#7c68fc",
@@ -84,7 +85,6 @@ function App() {
     const targetAnchorTool = new joint.linkTools.TargetAnchor();
     const boundaryTool = new joint.linkTools.Boundary();
     const removeButton = new joint.linkTools.Remove();
-
     const toolsView:joint.dia.ToolsView = new joint.dia.ToolsView({
       tools: [
         verticesTool,
@@ -102,11 +102,11 @@ function App() {
   };
 
 
-  const getLink=()=>{
+  const getLink=(color?:string)=>{
     const LINK: joint.shapes.standard.Link = new joint.shapes.standard.Link({
       attrs: {
         line: {
-          stroke: "#6a6c8a",
+          stroke: color||"#6a6c8a",
           strokeWidth: 2,
           pointerEvents: "none",
           targetMarker: {
@@ -120,11 +120,34 @@ function App() {
 
     return LINK;
   }
-
+  const getRootElement=()=>{
+    const ELEMENT: joint.shapes.standard.Rectangle =
+    new joint.shapes.standard.Rectangle({
+      size: { height: 45, width: 45 },
+      
+      attrs: {
+        body: {
+          fill: "#00000000",
+          rx: 5,
+          ry: 5,
+          cursor: "pointer",
+          strokeWidth: 2,
+          stroke: "#00000000",
+        },
+        label: {
+          text: "",
+          fill: "00000000",
+          "font-size": 0,
+        },
+      },
+    });
+    return ELEMENT;
+  }
   const getElement=()=>{
     const ELEMENT: joint.shapes.standard.Rectangle =
     new joint.shapes.standard.Rectangle({
       size: { height: 45, width: 100 },
+      
       attrs: {
         body: {
           fill: COLORS[1],
@@ -143,19 +166,116 @@ function App() {
     });
     return ELEMENT;
   }
+  const showInspector = (
+    view: joint.dia.ElementView
+  ) => {
+    const model = view.model;
 
+    joint.ui.Inspector.create(inspector.current, {
+      cell: model,
+      inputs: {
+        attrs: {
+          body: {
+            fill: {
+              type: "color",
+              options: [
+                { content: COLORS[0] },
+                { content: COLORS[1] },
+                { content: COLORS[2] },
+                { content: COLORS[3] },
+                { content: COLORS[4] },
+                { content: COLORS[5] },
+              ],
+              label: "Fill color",
+              group: "color",
+              index: 1,
+            },
+          },
+          fill: {
+            type: "color",
+            options: [
+              { content: FONTCOLORS[0] },
+              { content: FONTCOLORS[1] },
+              { content: FONTCOLORS[2] },
+              { content: FONTCOLORS[3] },
+              { content: FONTCOLORS[4] },
+            ],
+            label: "Font color",
+            group: "color",
+            index: 1,
+          },
+
+          label: {
+            text: {
+              label: "Label",
+              type: "text",
+              group: "text",
+              index: 2,
+            },
+            "font-family": {
+              type: "select",
+              options: ["Arial", "Times New Roman", "Courier New"],
+              label: "Font family",
+              group: "text",
+              index: 3,
+            },
+            "font-size": {
+              type: "select",
+              options: [
+                5, 10, 12, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30,
+              ],
+              multiple: false,
+              overwrite: true,
+              label: "Font size",
+              group: "text",
+              index: 3,
+            },
+          },
+        },
+        size: {
+          width: {
+            type: "range",
+            min: 10,
+            max: 500,
+            label: "Width",
+            group: "size",
+            index: 2,
+          },
+          height: {
+            type: "range",
+            min: 10,
+            max: 500,
+            label: "Box size",
+            group: "size",
+            index: 2,
+          },
+        },
+      },
+      groups: {
+        color: { label: "Color", index: 1 },
+        size: { label: "Size", index: 2 },
+        text: { label: "Style", index: 3 },
+      },
+    });
+  };
 
   useEffect(() => {
     // const graph = new joint.dia.Graph({}, { cellNamespace: shapes });
     // debugger;
     let currentSelectionModel = "";
-    let isremoveModeTree = true;
+    let isremoveModeTree = false;
     const templateDictionary: { [x: string]: any } = {};
     const graph = new joint.dia.Graph();
     const tree = new Layout.TreeLayout({ graph: graph });
+
+
+    const width=window.screen.availWidth-100;
+    const height=window.screen.availHeight-300;
+
+
     const paper = new joint.dia.Paper({
-      width: 600,
-      height: 600,
+      width:  width,
+      height:  height,
       gridSize: 10,
       model: graph,
       perpendicularLinks: false,
@@ -169,7 +289,7 @@ function App() {
       // },
       interactive: true,
     });
-
+    // const paperScroller = new joint.ui.PaperScroller({ autoResizePaper: true });
     const paperScroller = new joint.ui.PaperScroller({
       padding: 0,
       paper: paper,
@@ -179,9 +299,14 @@ function App() {
         return {
           padding: {
             bottom: 10,
-            top: 10,
-            left: 10,
-            right: 10,
+            top: 0,
+            left: 0,
+            right: 0,
+
+            // bottom: visibleArea.height / 2,
+            // top: visibleArea.height / 2,
+            // left: visibleArea.width / 2,
+            // right: visibleArea.width / 2
           },
           allowNewOrigin: "any",
         };
@@ -203,7 +328,7 @@ function App() {
       }, 1000);
     };
     canvas.current.onmousemove = (e: any) => {
-      if (graph.toJSON().cells.length > 0) return;
+      // if (graph.toJSON().cells.length > 0) return;
       addButton.current.style.display = "block";
 
       if (timeOut !== null) {
@@ -217,7 +342,10 @@ function App() {
     addButton.current.onclick = () => {
       // let label = prompt("Enter label");
       // generateTree(ELEMENT, elementZero.element, label || "");
-      createZeroElement(getElement());
+      if(!zeroElement){
+        zeroElement=createZeroElement( getRootElement());
+      }
+      createHeader(zeroElement)
     };
 
     saveButton.current.onclick = () => {
@@ -280,8 +408,8 @@ function App() {
       tree.layout();
       paperScroller.adjustPaper();
     };
-    let halo: any;
     const showHalo = (view: joint.dia.ElementView, opt: any) => {
+      let halo: any;
       const model = view.model;
 
       if (opt && opt.animation) {
@@ -390,107 +518,29 @@ function App() {
       return removableElements;
     };
 
-    const showInspector = (
-      view: joint.dia.ElementView,
-      x: number,
-      y: number
-    ) => {
-      const model = view.model;
-
-      joint.ui.Inspector.create(inspector.current, {
-        cell: model,
-        inputs: {
-          attrs: {
-            body: {
-              fill: {
-                type: "color",
-                options: [
-                  { content: COLORS[0] },
-                  { content: COLORS[1] },
-                  { content: COLORS[2] },
-                  { content: COLORS[3] },
-                  { content: COLORS[4] },
-                  { content: COLORS[5] },
-                ],
-                label: "Fill color",
-                group: "color",
-                index: 1,
-              },
-            },
-            fill: {
-              type: "color",
-              options: [
-                { content: FONTCOLORS[0] },
-                { content: FONTCOLORS[1] },
-                { content: FONTCOLORS[2] },
-                { content: FONTCOLORS[3] },
-                { content: FONTCOLORS[4] },
-              ],
-              label: "Font color",
-              group: "color",
-              index: 1,
-            },
-
-            label: {
-              text: {
-                label: "Label",
-                type: "text",
-                group: "text",
-                index: 2,
-              },
-              "font-family": {
-                type: "select",
-                options: ["Arial", "Times New Roman", "Courier New"],
-                label: "Font family",
-                group: "text",
-                index: 3,
-              },
-              "font-size": {
-                type: "select",
-                options: [
-                  5, 10, 12, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30,
-                ],
-                multiple: false,
-                overwrite: true,
-                label: "Font size",
-                group: "text",
-                index: 3,
-              },
-            },
-          },
-          size: {
-            width: {
-              type: "range",
-              min: 10,
-              max: 500,
-              label: "Width",
-              group: "size",
-              index: 2,
-            },
-            height: {
-              type: "range",
-              min: 10,
-              max: 500,
-              label: "Box size",
-              group: "size",
-              index: 2,
-            },
-          },
-        },
-        groups: {
-          color: { label: "Color", index: 1 },
-          size: { label: "Size", index: 2 },
-          text: { label: "Style", index: 3 },
-        },
-      });
-    };
+   
 
     const createZeroElement = (element: any) => {
-      element.position(0, 0).addTo(graph).findView(paper);
-      layout();
+ 
+          let posX = width/2-80;
+          let posY = height/4-50;
+
+          element?.position(posX, posY).addTo(graph).findView(paper);
+          // element?.position(0, 0).addTo(graph).findView(paper);
+     
+      // layout();
       return element;
     };
 
+
+
+    const createHeader = (element: any) => { 
+      if (element.isElement()) {
+        const el = getElement();
+     
+        generateHeaderTree(el, element, "");
+      }
+    };
 
     const createSubHeader = (view: any) => {
       console.log(view);
@@ -505,15 +555,15 @@ function App() {
     const onElementClick = (view: any, event: any) => {
       console.log(event.originalEvent);
       console.log(view);
+      if(view.model === zeroElement){ 
+        return ;
+      }
       // showHalo(view,{animation:true})
       if (clickTimerId) {
         // double click
         window.clearTimeout(clickTimerId);
         clickTimerId = null;
-        onElementDblClick(view, {
-          x: event.originalEvent.clientX /*-event.originalEvent.offsetX*/,
-          y: event.originalEvent.clientY /*+event.originalEvent.offsetY*/,
-        });
+        onElementDblClick(view);
       } else {
         // single click
         clickTimerId = window.setTimeout(click, 200);
@@ -526,12 +576,11 @@ function App() {
     };
 
     const onElementDblClick = (
-      view: any,
-      pointer: { x: number; y: number }
+      view: any 
     ) => {
       setDisplayInspector(true);
       setTimeout(() => {
-        showInspector(view, pointer.x, pointer.y);
+        showInspector(view);
       }, 10);
     };
 
@@ -560,12 +609,46 @@ function App() {
         .addTo(graph);
     };
 
+    const addHeaderElement = (
+      element: any,
+      direction: string,
+      parent: any,
+      label: string
+    ) => {
+      const color = COLORS[1];
+
+      const newElement = element
+        .clone()
+        .set("direction", direction)
+        .attr("body/fill", color)
+        .attr("label/text", label)
+        .addTo(graph);
+
+         getLink("#00000000")
+        .clone()
+        .set({
+          source: { id: parent.id },
+          target: { id: newElement.id },
+        })
+        .addTo(graph);
+    };
+
     const generateTree = (element: any, parent: any, label: string) => {
       label = label || "Placeholder";
 
       const directions = ["BR"];
       const direction = directions[0];
       const newElement = addElement(element, direction, parent, label);
+      layout();
+      return newElement;
+    };
+
+    const generateHeaderTree = (element: any, parent: any, label: string) => {
+      label = label || "Placeholder";
+
+      const directions = ["BR"];
+      const direction = directions[0];
+      const newElement = addHeaderElement(element, direction, parent, label);
       layout();
       return newElement;
     };
