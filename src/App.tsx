@@ -325,7 +325,7 @@ function App() {
       }
       timeOut = setTimeout(() => {
         addButton.current.style.display = "none";
-      }, 1000);
+      }, 800);
     };
     canvas.current.onmousemove = (e: any) => {
       // if (graph.toJSON().cells.length > 0) return;
