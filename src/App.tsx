@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import logo from "./logo.svg";
 import * as joint from "@clientio/rappid";
-import { layout as Layout } from "@clientio/rappid";
+import { elementTools, layout as Layout } from "@clientio/rappid";
 import "./App.css";
-import "@clientio/rappid/rappid.css";
-import { isLabeledStatement } from "typescript";
-import { constant } from "lodash";
+import "@clientio/rappid/rappid.css"; 
+import {Cell, Record, SavedObject} from "./DataTypes";
 
 function App() {
   const canvas: any = useRef(null);
@@ -17,7 +16,7 @@ function App() {
   const template: any = useRef(null);
   const content: any = useRef(null);
   const selecttemplate: any = useRef(null);
-
+  const templateDictionary: { [x: string]: any } = {};
   const DIRECTIONS = ["R", "BR", "B", "BL", "L", "TL", "T", "TR"];
   const POSITIONS = ["e", "se", "s", "sw", "w", "nw", "n", "ne"];
 
@@ -104,6 +103,7 @@ function App() {
     return toolsView;
   };
 
+
   const getLink = (color?: string) => {
     const LINK: joint.shapes.standard.Link = new joint.shapes.standard.Link({
       attrs: {
@@ -168,6 +168,40 @@ function App() {
       });
     return ELEMENT;
   };
+
+  const convertToRecordJson=(jsonObject:SavedObject):Record[]=>{
+      let record:Record[] = [];
+      let linkCells: Cell[] =  jsonObject.cells.filter((e:Cell)=>e.type === 'standard.Link');
+      let elmentCells: Cell[] =  jsonObject.cells.filter((e:Cell)=>e.type !== 'standard.Link');
+
+      /**
+       * 
+       *  
+          SiteNavigationId: string,
+          Name: string,
+          ParentNavigationId: string,
+          TemplateId: number
+       */
+
+      for(let i=0;i<elmentCells.length;i++){
+        let currEle:Cell=elmentCells[i];
+        let r:Record={} as Record;
+        r.SiteNavigationId=currEle.id;
+        r.Name = currEle.attrs?.label.text||"";
+       
+        let index=linkCells.findIndex((f:Cell)=>f.target?.id===currEle.id);
+          if(index>-1){
+              r.ParentNavigationId=linkCells[index].source?.id||"";
+          }
+          else{
+            r.ParentNavigationId="";
+          }
+          if(templateDictionary[currEle.id])
+          r.TemplateId = +templateDictionary[currEle.id];
+          record.push(r);
+      }
+      return record;
+  }
   const showInspector = (view: joint.dia.ElementView) => {
     const model = view.model;
 
@@ -262,7 +296,7 @@ function App() {
     // debugger;
     let currentSelectionModel = "";
     let isremoveModeTree = false;
-    const templateDictionary: { [x: string]: any } = {};
+   
     const graph = new joint.dia.Graph();
     const tree = new Layout.TreeLayout({ graph: graph });
 
@@ -385,12 +419,17 @@ function App() {
       return fetch(url).then((response: any) => response.text());
     };
 
+
+  
+  
     const saveDesign = () => {
-      let json = graph.toJSON();
+      let json:SavedObject = graph.toJSON();
+      let records:Record[]=convertToRecordJson(json);
+      console.log(JSON.stringify(records));
       console.log(json);
     };
 
-    const loadDesign = (jsonObject: string) => {
+    const loadDesign = (jsonObject: SavedObject) => {
       var jsonstring = JSON.stringify(jsonObject);
       var graph = new joint.dia.Graph();
       graph.fromJSON(JSON.parse(jsonstring));
