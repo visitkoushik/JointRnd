@@ -44,3 +44,23 @@ export type Record =  {
     cells:Cell[],
     template?: any
   }
+
+
+  
+
+  export type SiteNavigation={
+    SiteName: string,
+    Navigations:NaigationListItem[]
+
+  }
+
+
+  export type NaigationListItem={
+    Navigation:Navigation
+  }
+
+  export type Navigation={
+    Name:string,
+    TemplateId:number,
+    ChildNavigations:NaigationListItem[]
+  } 
