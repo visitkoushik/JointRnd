@@ -20,7 +20,8 @@ function App() {
   const multiHeader=false;
   const DIRECTIONS = ["R", "BR", "B", "BL", "L", "TL", "T", "TR"];
   const POSITIONS = ["e", "se", "s", "sw", "w", "nw", "n", "ne"];
-
+  const maxChild =4;
+ 
   let zeroElement: joint.shapes.standard.Circle | undefined = undefined;
   const COLORS = [
     "#31d0c6",
@@ -145,12 +146,15 @@ function App() {
       });
     return ELEMENT;
   };
+  
+
+
   const getElement = () => {
     const ELEMENT: joint.shapes.standard.Rectangle =
       new joint.shapes.standard.Rectangle({
         size: { height: 45, width: 100 },
 
-        attrs: {
+        attrs: {       
           body: {
             fill: COLORS[1],
             rx: 5,
@@ -233,7 +237,21 @@ function App() {
     return navigationsList;
   }
 
+  const getDepth = (jsonObject: SavedObject,elementID:string,depth:number):number=>{
+   let depthRes=depth;
+    let linkCells: Cell[] = jsonObject.cells.filter(
+      (e: Cell) => e.type === "standard.Link"
+    );
 
+    for(let i=0;i<linkCells.length;i++){
+      if(linkCells[i].target?.id === elementID){
+        return  getDepth(jsonObject,linkCells[i].source?.id||"",depth+1)
+      }
+    
+    }
+    return depthRes;
+    
+}
   const getSiteCell = (jsonObject: SavedObject): Cell[] => {
     debugger;
     let rootElement: Cell = jsonObject.cells.find(
@@ -365,6 +383,38 @@ function App() {
     });
   };
 
+
+
+  const openInspector = (view:any)=>{
+    setDisplayInspector(true);
+     setTimeout(() => {
+       showInspector(view);
+     }, 10);
+  }
+
+  const textEditor=(view:any, evt:any)=>{
+    joint.ui.TextEditor.edit(evt.target, {
+      cellView: view,
+      textProperty: ['attrs', 'label', 'text'],
+      annotationsProperty: ['attrs', 'label', 'annotations'],
+
+    });
+  }
+  
+  
+
+  const autoSize=(element:any,paper:any)=> {
+
+    var view = paper.findViewByModel(element);
+    var textVel = view.vel.findOne('text');
+    // Use bounding box without transformations so that our auto-sizing works
+    // even on e.g. rotated element.
+    var bbox = textVel.getBBox();
+    // 16 = 2*8 which is the translation defined via ref-x ref-y for our rb element.
+    element.resize(Math.max(bbox.width + 16,element.attributes.size.width),
+     Math.max(bbox.height + 16,element.attributes.size.height));
+}
+
   useEffect(() => {
     // const graph = new joint.dia.Graph({}, { cellNamespace: shapes });
     // debugger;
@@ -383,7 +433,7 @@ function App() {
       gridSize: 10,
       model: graph,
       perpendicularLinks: false,
-      drawGrid: false,
+      drawGrid: false, 
       background: {
         color: "rgba(0, 255, 0, 0.0)"
       },
@@ -407,10 +457,6 @@ function App() {
             left: 0,
             right: 0
 
-            // bottom: visibleArea.height / 2,
-            // top: visibleArea.height / 2,
-            // left: visibleArea.width / 2,
-            // right: visibleArea.width / 2
           },
           allowNewOrigin: "any"
         };
@@ -512,9 +558,20 @@ function App() {
       tree.layout();
       paperScroller.adjustPaper();
     };
+
+
+
+    graph.on('change', function(cell, opt) {
+      try{
+        if (cell?.isLink() || !opt.textEditor) return;
+        autoSize(cell,paper);
+      }
+      catch{}
+
+  });
     const showHalo = (view: joint.dia.ElementView, opt: any) => {
       let halo: any;
-      const model = view.model;
+      const model:any = view.model;
 
       if (opt && opt.animation) {
         paperScroller.scrollToElement(model, opt);
@@ -546,11 +603,12 @@ function App() {
         position: joint.ui.Halo.HandlePosition.S,
         icon: "img/link.png"
       });
+      if(getDepth(graph.toJSON(),model.id,0)< maxChild){
       halo.addHandle({
         name: "addaction",
         position: joint.ui.Halo.HandlePosition.S,
         icon: "img/plus.png"
-      });
+      });}
       halo.addHandle({
         name: "removeaction",
         position: joint.ui.Halo.HandlePosition.S,
@@ -654,7 +712,7 @@ function App() {
     var clickTimerId: any;
 
     const onBlankClick = (e: any) => {
-      paperScroller.startPanning(e);
+      paperScroller.startPanning(e); 
       if (!multiHeader && graph.toJSON().cells.length > 0) return;
       if (addButton.current.style.display !== "block" ) {
         addButton.current.style.top = e.originalEvent.y + "px";
@@ -663,35 +721,24 @@ function App() {
       } else {
         addButton.current.style.display = "none";
       }
- 
+      
     };
-    const onElementClick = (view: any, event: any) => {
+    const  onElementClick= (view: any, event: any) => {
       addButton.current.style.display = "none";
-      if (view.model === zeroElement) {
+      if (view.model === zeroElement ) {
         return;
       }
-      // showHalo(view,{animation:true})
-      if (clickTimerId) {
-        // double click
-        window.clearTimeout(clickTimerId);
-        clickTimerId = null;
-        onElementDblClick(view);
-      } else {
-        // single click
-        clickTimerId = window.setTimeout(() => {
-          clickTimerId = null;
-          showHalo(view, { animation: true });
-        }, 200);
-      }
+      
+      showHalo(view, { animation: true });
     };
 
-    const onElementDblClick = (view: any) => {
-      setDisplayInspector(true);
-      setTimeout(() => {
-        showInspector(view);
-      }, 10);
+    const  onElementDblClick= (view: any,evt:any) => {
+    
+      textEditor(view,evt);
+      autoSize(view.model, paper)
     };
-
+ 
+ 
     const addElement = (
       element: any,
       direction: string,
@@ -761,6 +808,7 @@ function App() {
     };
     paper.on({
       "element:pointerdown": onElementClick,
+      "element:pointerdblclick":onElementDblClick,
       "blank:pointerdown": onBlankClick
     });
     // graph.addCell(elementZero);
