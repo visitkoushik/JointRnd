@@ -327,7 +327,7 @@ function App() {
       joint.ui.TextEditor.close();
       JointService.layout(tree, paperScroller);
       console.log("graph", graph);
-      if (!multiHeader && graph.attributes.cells?.models.length) return;
+      if (!multiHeader && graph.attributes.cells && graph.attributes.cells.models.length>1) return;
       if (addButton.current.style.display !== "block") {
         addButton.current.style.top = e.originalEvent.y + "px";
         addButton.current.style.left = e.originalEvent.x + "px";
