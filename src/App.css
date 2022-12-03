@@ -51,13 +51,27 @@
     display: none;
 }
 
-.saveButton{
+.menuButton{
     width: 45px;
     height: 45px;
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    float: right;
+    margin: 0.5rem;
 }
+.loadButton{
+  
+    background-color: #f2f1fd;
+    color: black;
+    font-family: sans-serif;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    width: 45px;
+    height: 45px;
+    float: right;
+    margin: 0.5rem;
+    text-align: center;
+    line-height: 45px;
+}
+
 
 .inspector{
     background: white;

@@ -3,7 +3,7 @@ import React from "react";
 // interface Record{
     
 // }
-
+export const templateDictionary: { [x: string]: any } = {};
 export type Record =  {
         SiteNavigationId: string,
         Name: string,
@@ -61,6 +61,6 @@ export type Record =  {
 
   export type Navigation={
     Name:string,
-    TemplateId:number,
+    TemplateId:string|null,
     ChildNavigations:NaigationListItem[]
   } 
