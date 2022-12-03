@@ -5,16 +5,12 @@ import { elementTools, layout as Layout } from "@clientio/rappid";
 import "./App.css";
 import "@clientio/rappid/rappid.css";
 import {
-  Cell,
-  NaigationListItem,
-  Navigation,
-  Record,
-  SavedObject,
   SiteNavigation,
   templateDictionary
 } from "./DataTypes";
 import JointService from "./JointService";
 import LoadDesign from "./LoadDesign";
+import SaveToFile from "./SaveToFile";
 
 function App() {
   const canvas: any = useRef(null);
@@ -35,46 +31,11 @@ function App() {
   // let zeroElement: joint.shapes.standard.Circle | undefined = undefined;
 
   const [displayInspector, setDisplayInspector] = useState(false);
-  const [displaTemplateSelect, setDisplaTemplateSelect] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [displaTemplateSelect, setDisplaTemplateSelect] = useState(false); 
   const [options, setOption] = useState(JointService.allTemplates);
+ 
 
-  const getLinkToolsView = (): joint.dia.ToolsView => {
-    const verticesTool = new joint.linkTools.Vertices();
-    const segmentsTool = new joint.linkTools.Segments();
-    const sourceArrowheadTool = new joint.linkTools.SourceArrowhead();
-    const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
-    const sourceAnchorTool = new joint.linkTools.SourceAnchor();
-    const targetAnchorTool = new joint.linkTools.TargetAnchor();
-    const boundaryTool = new joint.linkTools.Boundary();
-    const removeButton = new joint.linkTools.Remove();
-    const toolsView: joint.dia.ToolsView = new joint.dia.ToolsView({
-      tools: [
-        verticesTool,
-        segmentsTool,
-        sourceArrowheadTool,
-        targetArrowheadTool,
-        sourceAnchorTool,
-        targetAnchorTool,
-        boundaryTool,
-        removeButton
-      ]
-    });
-
-    return toolsView;
-  };
-
-  const convertToSiteNavigation = (
-    jsonObject: SavedObject
-  ): SiteNavigation[] | SiteNavigation => {
-    let sites: Cell[] = JointService.getSiteCell(jsonObject);
-    let siteNav: SiteNavigation[] = [];
-    sites.forEach((s: Cell) =>
-      siteNav.push(JointService.createSiteNavigation(jsonObject, s))
-    );
-
-    return multiHeader ? siteNav : siteNav[0];
-  };
+  
 
   const openInspector = (view: any) => {
     setDisplayInspector(true);
@@ -83,7 +44,7 @@ function App() {
     }, 10);
   };
 
-  const textEditor = (view: any, evt: any) => {
+  const showTitleEditor = (view: any, evt: any) => {
     joint.ui.TextEditor.edit(evt.target, {
       cellView: view,
       textProperty: ["attrs", "label", "text"],
@@ -97,13 +58,11 @@ function App() {
 
     let currentSelectionModel = "";
     let isremoveModeTree = false;
-
-    const graph = new joint.dia.Graph();
-    const tree = new Layout.TreeLayout({ graph: graph });
-
     const width = window.screen.availWidth - 100;
     const height = window.screen.availHeight - 300;
 
+    const graph = new joint.dia.Graph();
+    const tree = new Layout.TreeLayout({ graph: graph }); 
     const paper = new joint.dia.Paper({
       width: width,
       height: height,
@@ -138,7 +97,7 @@ function App() {
         };
       }
     });
-    let timeOut: any = null;
+   
     canvas.current.appendChild(paperScroller.el);
 
     addButton.current.onmousemove = (e: any) => {
@@ -192,13 +151,9 @@ function App() {
     };
 
     loadButton.current.onchange = (e: any) => {
-      var fr = new FileReader();
-      fr.readAsText(e.target.files[0]);
-      fr.onload = function () {
-        const str: string = fr.result as string ;
-        const m:SiteNavigation = JSON.parse(str) as SiteNavigation;
-        LoadDesign.loadSite(
-          m,
+        
+        LoadDesign.loadFile(
+          e,
           graph,
           tree,
           paper,
@@ -206,8 +161,7 @@ function App() {
           width,
           height
         );
-        JointService.layout(tree, paperScroller);
-      };
+       
     };
 
     overlay1.current.onclick = (e: any) => {
@@ -228,39 +182,15 @@ function App() {
 
     selecttemplate.current.onchange = (e: any) => {
       if (currentSelectionModel) {
-        // debugger;
-        setSelectedTemplate(e.target.value);
+    
         templateDictionary[currentSelectionModel] = e.target.value;
         content.current.src = options[+(e.target.value + "") - 1].filename;
-        // fetchPage(options[+(e.target.value + "") - 1].filename)
-        //   .then((html: any) => {
-        //     console.log(html);
-        //     content.current.innerHTML = html;
-        //   })
-        //   .catch((e: any) => {});
+        
       }
     };
 
     const saveDesign = () => {
-      let json: SavedObject = graph.toJSON();
-      let sitNav = convertToSiteNavigation(json);
-      console.log(sitNav);
-      JointService.layout(tree, paperScroller);
-
-
-      let filename = "saved.json";
-        let text = JSON.stringify(sitNav);
-        let blob = new Blob([text], {type:'text/plain'});
-        let link = document.createElement("a");
-        link.download = filename;
-        //link.innerHTML = "Download File";
-        link.href = window.URL.createObjectURL(blob);
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => {
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(link.href);
-        }, 100);
+      SaveToFile.saveData(graph,multiHeader);
     };
 
     graph.on("change", function (cell, opt) {
@@ -388,6 +318,7 @@ function App() {
 
     const onBlankClick = (e: any) => {
       paperScroller.startPanning(e);
+      joint.ui.TextEditor.close();
       JointService.layout(tree, paperScroller);
       if (!multiHeader && graph.toJSON().cells.length > 0) return;
       if (addButton.current.style.display !== "block") {
@@ -408,7 +339,7 @@ function App() {
     };
 
     const onElementDblClick = (view: any, evt: any) => {
-      textEditor(view, evt);
+      showTitleEditor(view, evt);
       JointService.autoSize(view.model, paper);
     };
 

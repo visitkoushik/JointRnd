@@ -90,7 +90,7 @@ interface JointServiceData {
   allTemplates: any[];
 }
 
-const JointService = () => {
+const JointService = ():JointServiceData => {
   let jointService: JointServiceData = {} as JointServiceData;
   jointService.allTemplates = [
     {
