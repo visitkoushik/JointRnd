@@ -4,10 +4,7 @@ import * as joint from "@clientio/rappid";
 import { elementTools, layout as Layout } from "@clientio/rappid";
 import "./App.css";
 import "@clientio/rappid/rappid.css";
-import {
-  SiteNavigation,
-  templateDictionary
-} from "./DataTypes";
+import { SiteNavigation, templateDictionary } from "./DataTypes";
 import JointService from "./JointService";
 import LoadDesign from "./LoadDesign";
 import SaveToFile from "./SaveToFile";
@@ -16,6 +13,8 @@ function App() {
   const canvas: any = useRef(null);
   const addButton: any = useRef(null);
   const saveButton: any = useRef(null);
+  const clearButton: any = useRef(null);
+
   const loadButton: any = useRef(null);
   const inspector: any = useRef(null);
   const overlay1: any = useRef(null);
@@ -31,11 +30,8 @@ function App() {
   // let zeroElement: joint.shapes.standard.Circle | undefined = undefined;
 
   const [displayInspector, setDisplayInspector] = useState(false);
-  const [displaTemplateSelect, setDisplaTemplateSelect] = useState(false); 
+  const [displaTemplateSelect, setDisplaTemplateSelect] = useState(false);
   const [options, setOption] = useState(JointService.allTemplates);
- 
-
-  
 
   const openInspector = (view: any) => {
     setDisplayInspector(true);
@@ -62,7 +58,7 @@ function App() {
     const height = window.screen.availHeight - 300;
 
     const graph = new joint.dia.Graph();
-    const tree = new Layout.TreeLayout({ graph: graph }); 
+    const tree = new Layout.TreeLayout({ graph: graph });
     const paper = new joint.dia.Paper({
       width: width,
       height: height,
@@ -97,7 +93,7 @@ function App() {
         };
       }
     });
-   
+
     canvas.current.appendChild(paperScroller.el);
 
     addButton.current.onmousemove = (e: any) => {
@@ -127,22 +123,24 @@ function App() {
     addButton.current.onclick = () => {
       // let label = prompt("Enter label");
       // generateTree(ELEMENT, elementZero.element, label || "");
-      addButton.current.style.display = "none";
-      if (!JointService.zeroElement) {
-        JointService.zeroElement = JointService.createZeroElement(
+      ResetGraph(() => {
+        addButton.current.style.display = "none";
+        if (!JointService.zeroElement) {
+          JointService.zeroElement = JointService.createZeroElement(
+            graph,
+            JointService.getRootElement(),
+            paper,
+            width,
+            height
+          );
+        }
+        JointService.createHeader(
           graph,
-          JointService.getRootElement(),
-          paper,
-          width,
-          height
+          tree,
+          paperScroller,
+          JointService.zeroElement
         );
-      }
-      JointService.createHeader(
-        graph,
-        tree,
-        paperScroller,
-        JointService.zeroElement
-      );
+      });
     };
 
     saveButton.current.onclick = () => {
@@ -150,8 +148,12 @@ function App() {
       saveDesign();
     };
 
+    clearButton.current.onclick = () => {
+      ResetGraph(() => {});
+    };
+
     loadButton.current.onchange = (e: any) => {
-        
+      ResetGraph(() => {
         LoadDesign.loadFile(
           e,
           graph,
@@ -161,7 +163,7 @@ function App() {
           width,
           height
         );
-       
+      });
     };
 
     overlay1.current.onclick = (e: any) => {
@@ -182,15 +184,13 @@ function App() {
 
     selecttemplate.current.onchange = (e: any) => {
       if (currentSelectionModel) {
-    
         templateDictionary[currentSelectionModel] = e.target.value;
         content.current.src = options[+(e.target.value + "") - 1].filename;
-        
       }
     };
 
     const saveDesign = () => {
-      SaveToFile.saveData(graph,multiHeader);
+      SaveToFile.saveData(graph, multiHeader);
     };
 
     graph.on("change", function (cell, opt) {
@@ -261,7 +261,7 @@ function App() {
       });
       halo.on("action:linkaction:pointerdown", () => {
         currentSelectionModel = model.id + "";
-        console.log(model.id);
+
         selecttemplate.current.value =
           templateDictionary[currentSelectionModel] || "";
         content.current.src =
@@ -274,8 +274,6 @@ function App() {
     };
 
     const removeAction = (view: any) => {
-      console.log(view.model);
-
       if (isremoveModeTree) {
         delete templateDictionary[view.model.id];
         view.model.remove();
@@ -283,7 +281,6 @@ function App() {
       }
       let obje = graph.toJSON();
       let cells = obje.cells;
-      console.log(JSON.stringify(cells));
 
       let linkArray = cells.filter((el: any) => el.type === "standard.Link");
 
@@ -296,8 +293,6 @@ function App() {
       for (let i = 0; i < allModels.length; i++) {
         allModels[i].remove();
       }
-
-      console.log(removableElements);
     };
 
     const removeNode = (linkArray: any[], cellId: string) => {
@@ -314,13 +309,25 @@ function App() {
       return removableElements;
     };
 
-    var clickTimerId: any;
-
+    const ResetGraph = (onReset: Function) => {
+      let models = graph.attributes.cells?.models;
+      if (Array.isArray(models)) {
+        while (
+          graph.attributes.cells &&
+          graph.attributes.cells?.models.length > 0
+        ) {
+          graph.attributes.cells?.models[0].remove();
+        }
+      }
+      JointService.zeroElement = undefined;
+      if (onReset) onReset();
+    };
     const onBlankClick = (e: any) => {
       paperScroller.startPanning(e);
       joint.ui.TextEditor.close();
       JointService.layout(tree, paperScroller);
-      if (!multiHeader && graph.toJSON().cells.length > 0) return;
+      console.log("graph", graph);
+      if (!multiHeader && graph.attributes.cells?.models.length) return;
       if (addButton.current.style.display !== "block") {
         addButton.current.style.top = e.originalEvent.y + "px";
         addButton.current.style.left = e.originalEvent.x + "px";
@@ -411,6 +418,9 @@ function App() {
             Load
           </label>
         </div>
+        <button className="menuButton" id="clear" ref={clearButton}>
+          Clear
+        </button>
       </div>
     </>
   );

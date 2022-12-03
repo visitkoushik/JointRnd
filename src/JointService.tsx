@@ -325,7 +325,7 @@ const JointService = ():JointServiceData => {
     view: any,
     label?: string
   ) => {
-    console.log(view);
+ 
     const element = !view.hasOwnProperty("vel") ? view : view.model;
     let subheader: any = undefined;
     if (element.isElement()) {
@@ -420,7 +420,7 @@ const JointService = ():JointServiceData => {
     return depthRes;
   };
   jointService.getSiteCell = (jsonObject: SavedObject): Cell[] => {
-    debugger;
+    
     let rootElement: Cell = jsonObject.cells.find(
       (e: Cell) => e.type === "standard.Circle"
     ) as Cell;

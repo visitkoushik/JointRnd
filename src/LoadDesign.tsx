@@ -38,7 +38,7 @@ const loadSite = (
       JointService.zeroElement,
       jsonObject.SiteName
     );
-    debugger;
+  
     JointService.autoSize(newElement, paper);
     loadSubHeader(
       jsonObject.Navigations,

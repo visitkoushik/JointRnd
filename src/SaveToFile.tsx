@@ -31,7 +31,7 @@ const SaveToFile = (): SaveData => {
   saveFile.saveData = (graph: joint.dia.Graph, multiHeader: boolean): void => {
     let json: SavedObject = graph.toJSON();
     let sitNav = convertToSiteNavigation(json, multiHeader);
-    console.log(sitNav);
+    
 
     let filename = "saved.json";
     let text = JSON.stringify(sitNav);
