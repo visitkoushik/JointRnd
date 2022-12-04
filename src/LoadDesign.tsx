@@ -110,6 +110,8 @@ const LoadDesign = (): LoadData => {
     height: number
   ) :void=> {
     var fr = new FileReader();
+    if(e.target.files.length===0)
+        return
     fr.readAsText(e.target.files[0]);
     fr.onload = function () {
       const str: string = fr.result as string;

@@ -71,7 +71,9 @@
     text-align: center;
     line-height: 45px;
 }
-
+.loadButton.active{
+    background: #fff;
+}
 
 .inspector{
     background: white;

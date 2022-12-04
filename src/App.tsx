@@ -411,6 +411,7 @@ function App() {
             name="inputfile"
             id="load"
             ref={loadButton}
+            accept=".jj"
             hidden
           />
 

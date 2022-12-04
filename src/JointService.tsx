@@ -597,10 +597,7 @@ const JointService = ():JointServiceData => {
   jointService.autoSize = (element: any, paper: any) => {
     var view = paper.findViewByModel(element);
     var textVel = view.vel.findOne("text");
-    // Use bounding box without transformations so that our auto-sizing works
-    // even on e.g. rotated element.
     var bbox = textVel.getBBox();
-    // 16 = 2*8 which is the translation defined via ref-x ref-y for our rb element.
     element.resize(
       Math.max(bbox.width + 16, element.attributes.size.width),
       Math.max(bbox.height + 16, element.attributes.size.height)
